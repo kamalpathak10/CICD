@@ -1,2 +1,2 @@
 # CICD
-Continuous Integrationand Continuous Delivery
+Continuous Integration and Continuous Delivery
