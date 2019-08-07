@@ -1,0 +1,208 @@
+{
+	"name": "CopyPipeline-DB-to-ADLS",
+	"properties": {
+		"description": "Postgres to ADLS ",
+		"activities": [
+			{
+				"name": "ForEach_pvf",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.cw_items",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_pvf",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().source.tableName}"
+								},
+								{
+									"name": "Destination",
+									"value": "filesystem/Raw/DBExport/@{item().destination.fileName}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "RelationalSource",
+									"query": {
+										"value": "@item().copySource.query",
+										"type": "Expression"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSetting"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSetting",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SourceDataset_Postgres",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_tableName": "@item().source.tableName"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DestinationDataset_ADLS",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_fileName": "@item().destination.fileName"
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Copy Data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSetting",
+							"recursive": true,
+							"wildcardFileName": "*.*"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSetting"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSetting"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSetting",
+							"quoteAllText": true,
+							"fileExtension": ".csv"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataSet_Blob",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataSet_2",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"parameters": {
+			"cw_items": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": {
+							"tableName": "\"public\".\"dim_age_group\""
+						},
+						"destination": {
+							"fileName": "public.dim_age_group.csv"
+						},
+						"copySource": {
+							"query": "select * from \"public\".\"dim_age_group\""
+						}
+					},
+					{
+						"source": {
+							"tableName": "\"public\".\"dim_channel\""
+						},
+						"destination": {
+							"fileName": "public.dim_channel.csv"
+						},
+						"copySource": {
+							"query": "select * from \"public\".\"dim_channel\""
+						}
+					},
+					{
+						"source": {
+							"tableName": "\"public\".\"dim_country\""
+						},
+						"destination": {
+							"fileName": "public.dim_country.csv"
+						},
+						"copySource": {
+							"query": "select * from \"public\".\"dim_country\""
+						}
+					},
+					{
+						"source": {
+							"tableName": "\"public\".\"dim_day_parts\""
+						},
+						"destination": {
+							"fileName": "public.dim_day_parts.csv"
+						},
+						"copySource": {
+							"query": "select * from \"public\".\"dim_day_parts\""
+						}
+					},
+					{
+						"source": {
+							"tableName": "\"public\".\"dim_party_details\""
+						},
+						"destination": {
+							"fileName": "public.dim_party_details.csv"
+						},
+						"copySource": {
+							"query": "select * from \"public\".\"dim_party_details\""
+						}
+					},
+					{
+						"source": {
+							"tableName": "\"public\".\"tv_viewing_sessions\""
+						},
+						"destination": {
+							"fileName": "public.tv_viewing_sessions.csv"
+						},
+						"copySource": {
+							"query": "select * from \"public\".\"tv_viewing_sessions\""
+						}
+					}
+				]
+			}
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
